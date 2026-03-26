@@ -142,19 +142,20 @@ function parsePositiveInt(value: unknown, fallback: number) {
 export default async function LatestPage({
   searchParams,
 }: {
-  searchParams: { type?: string; page?: string };
+  searchParams: { type?: string; page?: string; source?: string };
 }) {
   const rawType = String(searchParams?.type || "project").toLowerCase();
   const type = rawType === "mirror" ? "mirror" : "project";
   const page = parsePage(searchParams?.page);
+  const source = type === "mirror" ? String(searchParams?.source || "").trim() : "";
 
   let items: any[] = [];
   let pagination: any = null;
   if (type === "mirror") {
     const [apiSettled, contentsSettled] = await Promise.allSettled(
       page === 1
-        ? [getLatest("mirror", page), fetchMirrorContentsFeed()]
-        : [getLatest("mirror", page), Promise.resolve([])]
+        ? [getLatest("mirror", page, source || undefined), fetchMirrorContentsFeed(source || undefined)]
+        : [getLatest("mirror", page, source || undefined), Promise.resolve([])]
     );
 
     const apiItems =
@@ -197,6 +198,7 @@ export default async function LatestPage({
   function buildHref(nextPage: number) {
     const params = new URLSearchParams();
     params.set("type", type);
+    if (type === "mirror" && source) params.set("source", source);
     const safePage = Math.max(1, nextPage);
     if (safePage !== 1) params.set("page", String(safePage));
     const qs = params.toString();

@@ -56,12 +56,14 @@ export type Pagination = {
   [key: string]: unknown;
 };
 
-export async function getLatest(type = "project", page = 1) {
+export async function getLatest(type = "project", page = 1, source?: string) {
   const params = new URLSearchParams();
   const safeType = String(type || "project").trim() || "project";
   const safePage = Number.isFinite(Number(page)) ? Math.max(1, Number(page)) : 1;
+  const safeSource = typeof source === "string" ? source.trim() : "";
 
   params.set("type", safeType);
+  if (safeSource) params.set("source", safeSource);
   if (safePage !== 1) params.set("page", String(safePage));
 
   const qs = params.toString();
