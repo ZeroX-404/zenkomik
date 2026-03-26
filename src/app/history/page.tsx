@@ -21,6 +21,45 @@ type HistoryItem = {
 const KEY_PRIMARY = "read_history";
 const KEY_FALLBACK = "reading_history";
 
+function extractChapterNumberText(value: unknown) {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return null;
+
+  let s = raw
+    .replace(/^chapter\s*/i, "")
+    .replace(/^ch\.?\s*/i, "")
+    .replace(/^episode\s*/i, "")
+    .trim();
+
+  s = s.replace(/^chapter-/, "").replace(/^ch-/, "");
+  if (!s) return null;
+  if (/^\d+-\d+$/.test(s) && !s.includes(".")) s = s.replace("-", ".");
+  s = s.replace(/_/g, ".");
+
+  const match = s.match(/(\d+(?:\.\d+)?)/);
+  const text = match?.[1] ?? null;
+  if (!text) return null;
+
+  const n = Number(text);
+  if (!Number.isFinite(n)) return null;
+  return Number.isInteger(n) ? String(Math.trunc(n)) : String(n);
+}
+
+function getSeriesSlug(item: HistoryItem) {
+  const title = String(item.title || "").trim();
+  const id = String(item.id_series || "").trim();
+  return slugify(title) || id || "";
+}
+
+function getContinueHref(item: HistoryItem) {
+  const seriesSlug = getSeriesSlug(item);
+  const chapterText = extractChapterNumberText(item.ch_name);
+  if (seriesSlug && chapterText) {
+    return `/series/${encodeURIComponent(seriesSlug)}/${encodeURIComponent(`chapter-${chapterText}`)}`;
+  }
+  return `/chapter/${encodeURIComponent(item.id_chapter)}`;
+}
+
 function loadHistory(): HistoryItem[] {
   const a = readJson<unknown>(KEY_PRIMARY, []);
   const b = readJson<unknown>(KEY_FALLBACK, []);
@@ -53,9 +92,9 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen pb-10">
-      <main className="container mx-auto px-4 mt-8 space-y-6">
+      <main className="container mx-auto px-4 mt-8 space-y-6 pb-24 md:pb-10">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-xl font-black text-white">History</h1>
+          <h1 className="text-xl font-black text-white uppercase tracking-tighter">Riwayat Baca</h1>
           {items.length ? (
             <button
               type="button"
@@ -71,53 +110,50 @@ export default function HistoryPage() {
         {!items.length ? (
           <p className="text-gray-400">Belum ada riwayat baca.</p>
         ) : (
-          <div className="space-y-3">
-            {items.map((h) => (
-              <div
-                key={h.id_chapter}
-                className="flex gap-3 p-3 rounded-lg bg-[#151515] border border-gray-800"
-              >
-                {h.image ? (
-                  <Link href={`/chapter/${h.id_chapter}`} className="shrink-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
+            {items.map((h) => {
+              const cover = h.image ? `/api/proxy?url=${encodeURIComponent(h.image)}` : "/placeholder-comic.svg";
+              const title = String(h.title || "Komik");
+              const chapterText = extractChapterNumberText(h.ch_name);
+              const badge = chapterText ? `LANJUT CH. ${chapterText}` : `LANJUT`;
+              const continueHref = getContinueHref(h);
+
+              const seriesSlug = getSeriesSlug(h);
+              const seriesHref = seriesSlug ? `/series/${encodeURIComponent(seriesSlug)}` : continueHref;
+
+              return (
+                <div key={h.id_chapter} className="group space-y-2">
+                  <Link
+                    href={continueHref}
+                    className="relative block aspect-[3/4.5] rounded-2xl overflow-hidden border border-white/5 bg-[#111] shadow-xl"
+                    aria-label={`Lanjut baca ${title}`}
+                  >
                     <Image
-                      src={
-                        h.image
-                          ? `/api/proxy?url=${encodeURIComponent(h.image)}`
-                          : "/placeholder-comic.svg"
-                      }
-                      alt={h.title || "cover"}
-                      width={56}
-                      height={80}
-                      className="w-14 h-20 object-cover rounded border border-gray-800"
+                      src={cover}
+                      alt={title}
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <div className="px-2 py-1 rounded-lg bg-blue-600/90 border border-blue-500/40 text-center text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                        {badge}
+                      </div>
+                    </div>
                   </Link>
-                ) : null}
 
-                <div className="flex-1 min-w-0">
-                  <Link href={`/chapter/${h.id_chapter}`} className="block">
-                    <div className="font-bold text-white truncate">{h.title || "Chapter"}</div>
-                    {h.ch_name ? <div className="text-xs text-gray-400 truncate">{h.ch_name}</div> : null}
-                  </Link>
-
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    <Link
-                      href={`/chapter/${h.id_chapter}`}
-                      className="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-xs font-semibold"
-                    >
-                      Lanjut baca
-                    </Link>
-                    {h.id_series ? (
-                      <Link
-                        href={`/series/${encodeURIComponent(slugify(String(h.title || "")) || String(h.id_series))}`}
-                        className="px-3 py-1.5 rounded bg-[#0b0b0b] border border-gray-800 hover:border-blue-600 text-xs"
-                      >
-                        Detail series
-                      </Link>
+                  <Link href={seriesHref} className="block">
+                    <h3 className="text-xs font-bold text-white uppercase tracking-tight line-clamp-2 group-hover:text-blue-400 transition">
+                      {title}
+                    </h3>
+                    {h.ch_name ? (
+                      <p className="text-[10px] text-gray-500 font-medium truncate">{h.ch_name}</p>
                     ) : null}
-                  </div>
+                  </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>

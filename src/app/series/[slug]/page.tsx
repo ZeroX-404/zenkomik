@@ -270,7 +270,12 @@ export default async function SeriesPage({
               </div>
 
               <div className="flex flex-wrap gap-3 pt-2 justify-center md:justify-start">
-                <ContinueReading id_series={s.id_series} first_chapter_id={firstChapterGlobalId} />
+                <ContinueReading
+                  id_series={s.id_series}
+                  first_chapter_id={firstChapterGlobalId}
+                  first_chapter_number={firstChapterGlobalNumber}
+                  series_slug={canonicalSlug}
+                />
                 <ShareButton title={String(s.title || "Komik")} />
                 <BookmarkButton
                   series={{ id_series: s.id_series, title: s.title, image: s.image }}

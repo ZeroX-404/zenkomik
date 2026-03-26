@@ -147,45 +147,45 @@ export default function Hero({ trending }: { trending: TrendingComic[] }) {
                   </div>
                 </div>
 
-                <div className="flex-1 space-y-6 text-center md:text-left">
-                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
-                    <span className="bg-blue-600 text-white text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.1em] shadow-lg shadow-blue-900/40">
+                <div className="flex-1 space-y-3 md:space-y-6 text-center md:text-left px-2 md:px-0">
+                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 md:gap-3">
+                    <span className="bg-blue-600 text-white text-[8px] md:text-[11px] font-black px-3 py-1 md:px-4 md:py-1.5 rounded-full uppercase tracking-[0.18em] md:tracking-[0.1em] shadow-lg shadow-blue-900/40">
                       Trending #{i + 1}
                     </span>
                     <span
-                      className={`${typeInfo.color} text-white text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.1em] border border-white/10`}
+                      className={`${typeInfo.color} text-white text-[8px] md:text-[11px] font-black px-3 py-1 md:px-4 md:py-1.5 rounded-full uppercase tracking-[0.18em] md:tracking-[0.1em] border border-white/10`}
                       title={typeInfo.label}
                     >
                       {typeInfo.flag} {typeInfo.label}
                     </span>
                     {status ? (
                       <span
-                        className={`border text-[11px] font-bold px-3 py-1.5 rounded-full uppercase ${statusChip(status)}`}
+                        className={`border text-[8px] md:text-[11px] font-bold px-3 py-1 md:py-1.5 rounded-full uppercase tracking-[0.12em] md:tracking-normal ${statusChip(status)}`}
                       >
                         {status}
                       </span>
                     ) : null}
                   </div>
 
-                  <h2 className="text-3xl md:text-6xl font-black text-white leading-[1.1] tracking-tighter drop-shadow-2xl line-clamp-2">
+                  <h2 className="text-xl sm:text-2xl md:text-6xl font-black text-white leading-tight md:leading-[1.1] tracking-tighter drop-shadow-2xl line-clamp-2">
                     {comic.title}
                   </h2>
 
-                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-6 text-sm font-bold text-gray-300">
+                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 md:gap-6 text-[10px] md:text-sm font-bold text-gray-300">
                     <div className="flex items-center gap-2">
-                      <Star size={18} className="text-yellow-500" fill="currentColor" />
-                      <span className="text-white text-lg">{ratingText}</span>
+                      <Star className="w-4 h-4 md:w-[18px] md:h-[18px] text-yellow-500" fill="currentColor" />
+                      <span className="text-white text-sm md:text-lg">{ratingText}</span>
                     </div>
                     {chapterCount ? (
                       <div className="flex items-center gap-2">
-                        <BookOpen size={18} className="text-blue-500" />
+                        <BookOpen className="w-4 h-4 md:w-[18px] md:h-[18px] text-blue-500" />
                         <span>{chapterCount.toLocaleString()} Chapters</span>
                       </div>
                     ) : null}
                     {updated ? (
                       <div className="flex items-center gap-2">
-                        <Clock size={18} className="text-purple-500" />
-                        <span className="truncate max-w-[240px]">{updated}</span>
+                        <Clock className="w-4 h-4 md:w-[18px] md:h-[18px] text-purple-500" />
+                        <span className="truncate max-w-[160px] md:max-w-[240px]">{updated}</span>
                       </div>
                     ) : null}
                   </div>

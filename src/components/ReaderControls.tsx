@@ -1,7 +1,18 @@
 "use client";
 
-import { ChevronUp, Maximize, Minimize } from "lucide-react";
+import { ChevronUp, Maximize, Minimize, Move, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { readJson, writeJson } from "@/lib/storage";
+
+type DockSide = "left" | "right";
+
+type Prefs = {
+  dockSide?: DockSide;
+  autoScrollSpeed?: number;
+  autoScrollPaused?: boolean;
+};
+
+const PREF_KEY = "reader_controls:prefs";
 
 export default function ReaderControls({
   isTheater,
@@ -11,7 +22,30 @@ export default function ReaderControls({
   onToggleTheater: () => void;
 }) {
   const [autoScrollSpeed, setAutoScrollSpeed] = useState(0);
+  const [autoScrollPaused, setAutoScrollPaused] = useState(false);
+  const [dockSide, setDockSide] = useState<DockSide>("right");
   const progressRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const raw = readJson<unknown>(PREF_KEY, null);
+    if (!raw || typeof raw !== "object") return;
+    const prefs = raw as Prefs;
+
+    if (prefs.dockSide === "left" || prefs.dockSide === "right") setDockSide(prefs.dockSide);
+    if (typeof prefs.autoScrollSpeed === "number" && Number.isFinite(prefs.autoScrollSpeed)) {
+      setAutoScrollSpeed(Math.max(0, Math.min(20, Math.round(prefs.autoScrollSpeed))));
+    }
+    if (typeof prefs.autoScrollPaused === "boolean") setAutoScrollPaused(prefs.autoScrollPaused);
+  }, []);
+
+  useEffect(() => {
+    const prefs: Prefs = {
+      dockSide,
+      autoScrollSpeed,
+      autoScrollPaused,
+    };
+    writeJson(PREF_KEY, prefs);
+  }, [autoScrollPaused, autoScrollSpeed, dockSide]);
 
   useEffect(() => {
     let raf = 0;
@@ -43,7 +77,7 @@ export default function ReaderControls({
   }, []);
 
   useEffect(() => {
-    if (autoScrollSpeed <= 0) return;
+    if (autoScrollSpeed <= 0 || autoScrollPaused) return;
 
     let raf = 0;
     let last = window.performance.now();
@@ -66,7 +100,18 @@ export default function ReaderControls({
     return () => {
       if (raf) window.cancelAnimationFrame(raf);
     };
-  }, [autoScrollSpeed]);
+  }, [autoScrollPaused, autoScrollSpeed]);
+
+  const isAutoScrolling = autoScrollSpeed > 0 && !autoScrollPaused;
+
+  function toggleAutoScroll() {
+    if (autoScrollSpeed <= 0) {
+      setAutoScrollSpeed(4);
+      setAutoScrollPaused(false);
+      return;
+    }
+    setAutoScrollPaused((v) => !v);
+  }
 
   return (
     <>
@@ -79,37 +124,87 @@ export default function ReaderControls({
       </div>
 
       <div
-        className={`fixed bottom-6 right-6 z-50 flex flex-col gap-3 transition-opacity duration-500 ${
+        className={`fixed bottom-6 ${
+          dockSide === "right" ? "right-6" : "left-6"
+        } z-50 flex flex-col gap-3 transition-opacity duration-500 ${
           isTheater ? "opacity-20 hover:opacity-100" : "opacity-100"
         }`}
       >
         <div className="bg-black/80 backdrop-blur-md p-3 rounded-2xl border border-gray-800 shadow-xl flex flex-col gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDockSide((v) => (v === "right" ? "left" : "right"))}
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-900 transition"
+              title="Pindah posisi"
+              aria-label="Pindah posisi"
+            >
+              <Move size={18} />
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleAutoScroll}
+              className={`p-2 rounded-xl transition ${
+                isAutoScrolling
+                  ? "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                  : "bg-blue-600/20 text-blue-200 hover:bg-blue-600/30"
+              }`}
+              title={isAutoScrolling ? "Pause auto-scroll" : "Play auto-scroll"}
+              aria-label={isAutoScrolling ? "Pause auto-scroll" : "Play auto-scroll"}
+            >
+              {isAutoScrolling ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={onToggleTheater}
+              className={`p-2 rounded-xl transition ${
+                isTheater ? "bg-blue-600 text-white" : "hover:bg-gray-900 text-gray-400"
+              }`}
+              title="Theater Mode"
+              aria-label="Toggle theater mode"
+            >
+              {isTheater ? <Minimize size={18} /> : <Maximize size={18} />}
+            </button>
+          </div>
+
           <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] font-bold text-gray-500 uppercase">
-              Speed: {autoScrollSpeed}
+              Auto-scroll: {autoScrollSpeed}
             </span>
             <input
               type="range"
               min={0}
               max={20}
               value={autoScrollSpeed}
-              onChange={(e) => setAutoScrollSpeed(Number(e.target.value))}
-              className="w-28 accent-blue-500"
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                setAutoScrollSpeed(next);
+                if (next <= 0) setAutoScrollPaused(false);
+                else setAutoScrollPaused(false);
+              }}
+              className="w-32 accent-blue-500"
               aria-label="Auto scroll speed"
             />
           </div>
 
-          <button
-            type="button"
-            onClick={onToggleTheater}
-            className={`p-3 rounded-xl transition ${
-              isTheater ? "bg-blue-600 text-white" : "hover:bg-gray-800 text-gray-400"
-            }`}
-            title="Theater Mode"
-            aria-label="Toggle theater mode"
-          >
-            {isTheater ? <Minimize size={20} /> : <Maximize size={20} />}
-          </button>
+          {autoScrollSpeed > 0 ? (
+            <button
+              type="button"
+              onClick={() => setAutoScrollPaused(false)}
+              className={`text-[10px] font-bold uppercase tracking-widest ${
+                autoScrollPaused ? "text-gray-300 hover:text-white" : "text-gray-500"
+              }`}
+              aria-label="Resume auto scroll"
+            >
+              {autoScrollPaused ? "Paused • Tap Play" : "Scrolling"}
+            </button>
+          ) : (
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+              Auto-scroll off
+            </span>
+          )}
         </div>
 
         <button
