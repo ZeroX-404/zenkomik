@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import SectionHeader from "@/components/SectionHeader";
 import PromoCard from "@/components/PromoCard";
 import ContinueReadingHub from "@/components/ContinueReadingHub";
+import ScrollReveal from "@/components/ScrollReveal";
 import { mirrorFallbackRows } from "@/data/mirrorFallback";
 import { getExplore, getLatest, getPopular, getRecommended, getSeries } from "@/lib/api";
 import { fetchMirrorFeed } from "@/lib/mirrorFeed";
@@ -131,59 +132,67 @@ export default async function Home() {
           <div className="lg:col-span-9 space-y-12">
             <Hero trending={heroItems} />
             <ContinueReadingHub />
-            <PopularHorizontal data={popularItems} />
+            <ScrollReveal>
+              <PopularHorizontal data={popularItems} />
+            </ScrollReveal>
 
-            <section className="space-y-6">
-              <SectionHeader title="Eksplor Manhwa" icon={Star} href="/explore?format=manhwa" />
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-                {manhwaItems.slice(0, 4).map((c: any) => (
-                  <ComicCard key={c.id_series} comic={c} />
-                ))}
+            <ScrollReveal delayMs={40}>
+              <section className="space-y-6">
+                <SectionHeader title="Eksplor Manhwa" icon={Star} href="/explore?format=manhwa" />
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                  {manhwaItems.slice(0, 4).map((c: any) => (
+                    <ComicCard key={c.id_series} comic={c} />
+                  ))}
 
-                <div className="hidden lg:block">
-                  <PromoCard
-                    title="Dukung Admin"
-                    link="https://trakteer.id/zenkomik"
-                    image="https://c.tenor.com/rt-b5wrDLisAAAAd/tenor.gif"
-                    storageKey="promo:support-admin"
-                  />
+                  <div className="hidden lg:block">
+                    <PromoCard
+                      title="Dukung Admin"
+                      link="https://trakteer.id/zenkomik"
+                      image="https://c.tenor.com/rt-b5wrDLisAAAAd/tenor.gif"
+                      storageKey="promo:support-admin"
+                    />
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            </ScrollReveal>
 
-            <RecommendedScroll
-              title="Eksplor Manga"
-              data={mangaItems}
-              type="manga"
-            />
+            <ScrollReveal delayMs={60}>
+              <RecommendedScroll title="Eksplor Manga" data={mangaItems} type="manga" />
+            </ScrollReveal>
 
-            <section>
-              <SectionHeader title="Update Project" icon={Zap} href="/latest?type=project" />
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {latestProjectItems.slice(0, 8).map((c: any) => (
-                  <ComicCard key={c.id_series} comic={c} />
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <SectionHeader title="Mirror Updates" icon={Globe} href="/latest?type=mirror" />
-              {latestMirrorItems.length ? (
+            <ScrollReveal delayMs={80}>
+              <section>
+                <SectionHeader title="Update Project" icon={Zap} href="/latest?type=project" />
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                  {latestMirrorItems.slice(0, 8).map((c: any) => (
-                    <ComicCard key={c.id_series} comic={c} isMirror />
+                  {latestProjectItems.slice(0, 8).map((c: any) => (
+                    <ComicCard key={c.id_series} comic={c} />
                   ))}
                 </div>
-              ) : (
-                <div className="p-8 rounded-xl border border-gray-800 bg-[#151515] text-gray-400">
-                  Belum ada data mirror.
-                </div>
-              )}
-            </section>
+              </section>
+            </ScrollReveal>
+
+            <ScrollReveal delayMs={100}>
+              <section>
+                <SectionHeader title="Mirror Updates" icon={Globe} href="/latest?type=mirror" />
+                {latestMirrorItems.length ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    {latestMirrorItems.slice(0, 8).map((c: any) => (
+                      <ComicCard key={c.id_series} comic={c} isMirror />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 rounded-xl border border-gray-800 bg-[#151515] text-gray-400">
+                    Belum ada data mirror.
+                  </div>
+                )}
+              </section>
+            </ScrollReveal>
           </div>
 
           <aside className="lg:col-span-3">
-            <Sidebar trending={popularItems} />
+            <ScrollReveal delayMs={120}>
+              <Sidebar trending={popularItems} />
+            </ScrollReveal>
           </aside>
         </div>
       </main>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { Play } from "lucide-react";
+import { Clock, Play } from "lucide-react";
 import { readJson } from "@/lib/storage";
 import { slugify } from "@/lib/text";
 
@@ -53,11 +53,18 @@ function loadHistory() {
 
 export default function ContinueReadingHub() {
   const [lastRead, setLastRead] = useState<HistoryItem | null>(null);
+  const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
     const history = loadHistory();
     setLastRead(history[0] || null);
   }, []);
+
+  useEffect(() => {
+    if (!lastRead) return;
+    const id = requestAnimationFrame(() => setAnimateIn(true));
+    return () => cancelAnimationFrame(id);
+  }, [lastRead]);
 
   const href = useMemo(() => {
     if (!lastRead) return null;
@@ -87,30 +94,39 @@ export default function ContinueReadingHub() {
   const imgSrc = cover ? `/api/proxy?url=${encodeURIComponent(cover)}` : "/placeholder-comic.svg";
 
   return (
-    <section className="bg-blue-600/10 border border-blue-500/20 p-4 md:p-5 rounded-2xl flex items-center justify-between gap-4 hover:bg-blue-600/15 transition-all">
-      <div className="flex items-center gap-4 min-w-0">
-        <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-white/10 bg-black flex-shrink-0">
-          <Image src={imgSrc} alt={title} fill className="object-cover" sizes="56px" />
+    <section
+      className={`relative overflow-hidden bg-blue-600/10 border border-blue-500/20 p-3 md:p-4 rounded-2xl flex items-center gap-3 md:gap-4 hover:bg-blue-600/15 transition-all will-change-transform ${
+        animateIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+      } transition-[opacity,transform] duration-500 ease-out`}
+    >
+      <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-blue-500/90 via-blue-400/30 to-transparent" />
+
+      <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
+        <div className="relative w-12 h-16 md:w-14 md:h-20 rounded-xl overflow-hidden border border-white/10 bg-black flex-shrink-0 shadow-lg shadow-blue-900/10">
+          <Image src={imgSrc} alt={title} fill className="object-cover" sizes="80px" />
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase text-blue-400 tracking-widest">
-            Lanjut Membaca
-          </p>
-          <h3 className="text-sm md:text-base font-bold text-white leading-tight truncate">
+          <div className="flex items-center gap-1.5 text-blue-400">
+            <Clock size={11} />
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.22em]">
+              Lanjut Baca
+            </p>
+          </div>
+          <h3 className="text-xs md:text-sm font-bold text-white leading-tight truncate uppercase tracking-tight">
             {title}
           </h3>
-          <p className="text-[11px] text-gray-300/80 truncate">{label}</p>
+          <p className="text-[10px] md:text-[11px] text-gray-300/80 truncate">{label}</p>
         </div>
       </div>
 
       <Link
         href={href}
-        className="px-5 md:px-6 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-500 transition shadow-lg shadow-blue-900/20 whitespace-nowrap inline-flex items-center gap-2"
+        className="shrink-0 inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-black hover:bg-blue-500 transition shadow-lg shadow-blue-900/25 active:scale-95 md:active:scale-100 w-10 h-10 rounded-full md:w-auto md:h-auto md:px-6 md:py-3 md:rounded-2xl"
       >
-        <Play size={16} className="fill-current" /> GAS BACA
+        <Play size={18} className="fill-current md:mr-0.5" />
+        <span className="hidden md:inline text-xs tracking-widest uppercase">Gas Baca</span>
       </Link>
     </section>
   );
 }
-
