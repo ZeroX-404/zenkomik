@@ -162,6 +162,7 @@ type ChapterLookup = {
 
 export type ChapterLookupResult = {
   seriesTitle?: string;
+  seriesImage?: string;
   current: ChapterLookup;
   prev: ChapterLookup | null;
   next: ChapterLookup | null;
@@ -268,7 +269,8 @@ export async function getChapterLookupByNumber(seriesId: string, chapterParam: s
     const chapters = asArray<any>(s?.chapters);
     const pagination = (res as any)?.pagination ?? s?.pagination ?? null;
     const title = typeof s?.title === "string" ? s.title : undefined;
-    return { chapters, pagination, title };
+    const image = typeof s?.image === "string" ? s.image : undefined;
+    return { chapters, pagination, title, image };
   };
 
   const firstPage = await fetchPage(1);
@@ -278,6 +280,7 @@ export async function getChapterLookupByNumber(seriesId: string, chapterParam: s
   let foundPage = 1;
   let foundChapters = firstPage.chapters;
   let foundTitle = firstPage.title;
+  let foundImage = firstPage.image;
   let idx = findChapterIndexByNumber(foundChapters, target, targetText);
 
   if (idx < 0 && totalPages > 1) {
@@ -299,6 +302,7 @@ export async function getChapterLookupByNumber(seriesId: string, chapterParam: s
           foundPage = mid;
           foundChapters = pageData.chapters;
           foundTitle = pageData.title;
+          foundImage = pageData.image;
           idx = foundIdx;
         }
         break;
@@ -363,6 +367,7 @@ export async function getChapterLookupByNumber(seriesId: string, chapterParam: s
 
   const result: ChapterLookupResult = {
     seriesTitle: foundTitle,
+    seriesImage: foundImage,
     current,
     prev,
     next,

@@ -30,6 +30,8 @@ export default function ChapterReader({
   chapterId,
   seriesId,
   seriesHref,
+  seriesTitle,
+  seriesImage,
   prevHref,
   nextHref,
   chapter,
@@ -38,6 +40,8 @@ export default function ChapterReader({
   chapterId: string;
   seriesId?: string | null;
   seriesHref: string;
+  seriesTitle?: string;
+  seriesImage?: string;
   prevHref?: string | null;
   nextHref?: string | null;
   chapter: ChapterLike;
@@ -46,11 +50,13 @@ export default function ChapterReader({
   const [isTheater, setIsTheater] = useState(false);
 
   const images = Array.isArray(chapter?.images) ? (chapter.images as string[]) : [];
-  const seriesTitle = String(chapter?.title || "Reading");
+  const displaySeriesTitle = String(seriesTitle || chapter?.title || "Reading");
   const chapterLabel = String(
     chapter?.chapter_name || chapter?.chapter_title || fallbackChapterLabel || "Chapter"
   );
-  const coverImage = String((chapter as any)?.thumbnail || (chapter as any)?.image || "").trim();
+  const coverImage = String(
+    seriesImage || (chapter as any)?.thumbnail || (chapter as any)?.image || ""
+  ).trim();
 
   const scrollHandler = (direction: "up" | "down") => {
     const distance = window.innerHeight * 0.6;
@@ -69,14 +75,14 @@ export default function ChapterReader({
     const entry: HistoryEntry = {
       id_series: seriesId ? String(seriesId) : undefined,
       id_chapter: chapterId,
-      title: seriesTitle,
+      title: displaySeriesTitle,
       ch_name: chapterLabel,
       image: coverImage || undefined,
       date: Date.now(),
     };
 
     writeJson(key, [entry, ...filtered].slice(0, 20));
-  }, [chapterId, chapterLabel, coverImage, seriesId, seriesTitle]);
+  }, [chapterId, chapterLabel, coverImage, seriesId, displaySeriesTitle]);
 
   return (
     <div className="bg-black min-h-screen text-white transition-all duration-500">
@@ -119,7 +125,7 @@ export default function ChapterReader({
 
           <div className="flex flex-col items-center min-w-0 flex-1 px-2">
             <h1 className="text-[11px] text-blue-400 font-bold uppercase tracking-tighter truncate w-full text-center">
-              {seriesTitle}
+              {displaySeriesTitle}
             </h1>
             <p className="text-[13px] font-medium text-white truncate w-full text-center">
               {chapterLabel}

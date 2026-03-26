@@ -99,6 +99,8 @@ export default async function ChapterPage({
       chapterId={lookup.current.id_chapter}
       seriesId={seriesId}
       seriesHref={seriesHref}
+      seriesTitle={lookup.seriesTitle}
+      seriesImage={lookup.seriesImage}
       prevHref={prevHref}
       nextHref={nextHref}
       chapter={chapter}
@@ -106,4 +108,3 @@ export default async function ChapterPage({
     />
   );
 }
-
