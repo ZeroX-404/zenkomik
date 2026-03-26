@@ -147,7 +147,11 @@ export default async function LatestPage({
   const rawType = String(searchParams?.type || "project").toLowerCase();
   const type = rawType === "mirror" ? "mirror" : "project";
   const page = parsePage(searchParams?.page);
-  const source = type === "mirror" ? String(searchParams?.source || "").trim() : "";
+  const envDefaultSource = String(
+    process.env.MIRROR_LATEST_SOURCE || process.env.NEXT_PUBLIC_MIRROR_LATEST_SOURCE || ""
+  ).trim();
+  const source =
+    type === "mirror" ? String(searchParams?.source || "").trim() || envDefaultSource : "";
 
   let items: any[] = [];
   let pagination: any = null;

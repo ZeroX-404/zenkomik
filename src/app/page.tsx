@@ -35,10 +35,14 @@ function formatStatus(value: unknown) {
 }
 
 export default async function Home() {
+  const defaultMirrorSource = String(
+    process.env.MIRROR_LATEST_SOURCE || process.env.NEXT_PUBLIC_MIRROR_LATEST_SOURCE || ""
+  ).trim();
+
   const [latestProjectSettled, latestMirrorSettled, popularSettled, manhwaSettled, mangaSettled] =
     await Promise.allSettled([
       getLatest("project"),
-      getLatest("mirror"),
+      getLatest("mirror", 1, defaultMirrorSource || undefined),
       getPopular(),
       getExplore("all", { pageSize: 18, format: "manhwa" }),
       getExplore("all", { pageSize: 12, format: "manga" }),
@@ -75,7 +79,7 @@ export default async function Home() {
   const heroSeed = popularItems.slice(0, 6);
 
   if (!latestMirrorItems.length) {
-    const mirrorFeed = await fetchMirrorFeed();
+    const mirrorFeed = await fetchMirrorFeed(defaultMirrorSource || undefined);
     latestMirrorItems = mirrorFeed.length ? mirrorFeed : mapMirrorFallbackRows(mirrorFallbackRows);
   }
 
@@ -173,7 +177,13 @@ export default async function Home() {
 
             <ScrollReveal delayMs={100}>
               <section>
-                <SectionHeader title="Mirror Updates" icon={Globe} href="/latest?type=mirror" />
+                <SectionHeader
+                  title="Mirror Updates"
+                  icon={Globe}
+                  href={`/latest?type=mirror${
+                    defaultMirrorSource ? `&source=${encodeURIComponent(defaultMirrorSource)}` : ""
+                  }`}
+                />
                 {latestMirrorItems.length ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                     {latestMirrorItems.slice(0, 8).map((c: any) => (
