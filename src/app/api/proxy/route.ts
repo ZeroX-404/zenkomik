@@ -3,6 +3,9 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
+const DEFAULT_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
+
 function getAllowedHosts() {
   const raw = process.env.KOMIK_PROXY_ALLOWED_HOSTS || "";
   return raw
@@ -64,6 +67,13 @@ function isBlockedHostname(hostname: string) {
   return false;
 }
 
+function fallbackRefererFor(url: URL) {
+  const host = url.hostname.toLowerCase();
+  if (host.endsWith("westmanga.blog")) return "https://westmanga.blog/";
+  if (host.endsWith("westmanga.tv")) return "https://westmanga.tv/";
+  return `${url.origin}/`;
+}
+
 export async function GET(request: NextRequest) {
   const rawUrl = request.nextUrl.searchParams.get("url");
   if (!rawUrl) return new Response("No URL", { status: 400 });
@@ -87,9 +97,24 @@ export async function GET(request: NextRequest) {
     return new Response("Host not allowed", { status: 403 });
   }
 
+  const userAgent = String(process.env.KOMIK_PROXY_USER_AGENT || DEFAULT_UA).trim() || DEFAULT_UA;
+  const referer =
+    String(process.env.KOMIK_PROXY_REFERER || "").trim() || fallbackRefererFor(url);
+  const origin = (() => {
+    try {
+      return new URL(referer).origin;
+    } catch {
+      return url.origin;
+    }
+  })();
+
   const upstream = await fetch(url.toString(), {
     headers: {
       Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
+      "User-Agent": userAgent,
+      Referer: referer,
+      Origin: origin,
     },
   });
 
