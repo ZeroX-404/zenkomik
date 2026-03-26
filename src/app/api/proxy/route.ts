@@ -33,6 +33,33 @@ function isAllowedHostname(hostname: string) {
   });
 }
 
+function getRefererHosts() {
+  const raw = process.env.KOMIK_PROXY_REFERER_HOSTS || "";
+  return raw
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function shouldApplyRefererFor(hostname: string) {
+  const hosts = getRefererHosts();
+  if (!hosts.length) return true;
+
+  const host = hostname.toLowerCase();
+  return hosts.some((pattern) => {
+    if (!pattern) return false;
+    if (pattern.startsWith("*.")) {
+      const base = pattern.slice(2);
+      return host === base || host.endsWith(`.${base}`);
+    }
+    if (pattern.startsWith(".")) {
+      const base = pattern.slice(1);
+      return host === base || host.endsWith(`.${base}`);
+    }
+    return host === pattern;
+  });
+}
+
 function isPrivateIpv4(hostname: string) {
   const parts = hostname.split(".").map((p) => Number.parseInt(p, 10));
   if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n) || n < 0 || n > 255)) return false;
@@ -98,8 +125,11 @@ export async function GET(request: NextRequest) {
   }
 
   const userAgent = String(process.env.KOMIK_PROXY_USER_AGENT || DEFAULT_UA).trim() || DEFAULT_UA;
+  const configuredReferer = String(process.env.KOMIK_PROXY_REFERER || "").trim();
   const referer =
-    String(process.env.KOMIK_PROXY_REFERER || "").trim() || fallbackRefererFor(url);
+    configuredReferer && shouldApplyRefererFor(url.hostname)
+      ? configuredReferer
+      : fallbackRefererFor(url);
   const origin = (() => {
     try {
       return new URL(referer).origin;
