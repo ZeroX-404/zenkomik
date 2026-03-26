@@ -84,7 +84,10 @@ export default function Hero({ trending }: { trending: TrendingComic[] }) {
         <ChevronRight size={28} />
       </button>
 
-      <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
+      <div
+        ref={scrollRef}
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth"
+      >
         {items.map((comic, i) => {
           const typeInfo = getTypeDetail(comic.type);
           const img = comic.image
@@ -111,19 +114,34 @@ export default function Hero({ trending }: { trending: TrendingComic[] }) {
           return (
             <div
               key={comic.id_series}
-              className="relative min-w-full h-[400px] md:h-[550px] snap-center flex-shrink-0 flex items-center"
+              className="relative min-w-full h-[450px] md:h-[550px] snap-center flex-shrink-0 flex items-center justify-center"
             >
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-25 blur-2xl scale-110"
-                style={{ backgroundImage: `url(${img})` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0b] via-[#0b0b0b]/80 to-transparent" />
+              <div className="absolute inset-0 z-0 relative">
+                <Image
+                  src={img}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  sizes="100vw"
+                  className="object-cover opacity-40 blur-2xl scale-110 pointer-events-none select-none"
+                  priority={i === 0}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/60 to-transparent md:hidden" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0b] via-[#0b0b0b]/80 to-transparent hidden md:block" />
+              </div>
 
-              <div className="relative z-10 w-full px-6 md:px-16 flex flex-col md:flex-row items-center gap-10">
-                <div className="hidden md:block relative w-64 h-[380px] flex-shrink-0 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/10 bg-[#111]">
-                  <Image src={img} alt={comic.title} fill sizes="256px" className="object-cover" priority={i === 0} />
+              <div className="relative z-10 w-full px-6 md:px-16 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                <div className="relative w-32 md:w-64 aspect-[3/4.5] flex-shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-[#111]">
+                  <Image
+                    src={img}
+                    alt={comic.title}
+                    fill
+                    sizes="(max-width: 768px) 128px, 256px"
+                    className="object-cover"
+                    priority={i === 0}
+                  />
                   <div
-                    className={`absolute top-4 left-4 ${typeInfo.color} text-white px-3 py-1 rounded-lg text-xs font-black border border-white/10 uppercase tracking-tighter`}
+                    className={`absolute top-2 left-2 md:top-4 md:left-4 ${typeInfo.color} text-white px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-[10px] md:text-xs font-black border border-white/10 uppercase tracking-tighter`}
                   >
                     {typeInfo.flag} {typeInfo.label}
                   </div>

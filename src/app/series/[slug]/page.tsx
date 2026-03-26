@@ -194,17 +194,21 @@ export default async function SeriesPage({
       <main className="min-h-screen pb-10">
         <div className="relative h-[360px] md:h-[500px] w-full overflow-hidden">
           {proxiedImg ? (
-            <div
-              className="absolute inset-0 bg-cover bg-center scale-110 blur-2xl opacity-30"
-              style={{ backgroundImage: `url(${proxiedImg})` }}
+            <Image
+              src={proxiedImg}
+              alt=""
+              aria-hidden="true"
+              fill
+              sizes="100vw"
+              className="object-cover scale-110 blur-2xl opacity-30 pointer-events-none select-none"
             />
           ) : (
             <div className="absolute inset-0 bg-[#111]" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/60 to-transparent" />
 
-          <div className="relative container mx-auto px-4 h-full flex flex-col md:flex-row items-end gap-6 pb-10">
-            <div className="relative w-40 md:w-64 aspect-[3/4] flex-shrink-0 shadow-2xl rounded-xl overflow-hidden border border-gray-800 bg-[#111]">
+          <div className="relative container mx-auto px-4 h-full flex flex-col items-center md:flex-row md:items-end gap-6 pb-10">
+            <div className="relative w-40 md:w-64 aspect-[3/4] flex-shrink-0 shadow-2xl rounded-xl overflow-hidden border border-gray-800 bg-[#111] mx-auto md:mx-0">
               {proxiedImg ? (
                 <Image
                   src={proxiedImg}
@@ -217,12 +221,12 @@ export default async function SeriesPage({
               ) : null}
             </div>
 
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 text-center md:text-left">
               <h1 className="text-2xl md:text-4xl font-black text-white leading-tight">
                 {s.title}
               </h1>
 
-              <div className="flex flex-wrap gap-2 text-xs md:text-sm text-gray-300">
+              <div className="flex flex-wrap gap-2 text-xs md:text-sm text-gray-300 justify-center md:justify-start">
                 <span className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full border border-white/10">
                   <Book size={14} className="text-blue-400" /> {typeLabel}
                 </span>
@@ -254,7 +258,7 @@ export default async function SeriesPage({
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                 {(s.genres || []).map((g: string) => (
                   <span
                     key={g}
@@ -265,7 +269,7 @@ export default async function SeriesPage({
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex flex-wrap gap-3 pt-2 justify-center md:justify-start">
                 <ContinueReading id_series={s.id_series} first_chapter_id={firstChapterGlobalId} />
                 <ShareButton title={String(s.title || "Komik")} />
                 <BookmarkButton
